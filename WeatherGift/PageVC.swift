@@ -9,8 +9,8 @@
 import UIKit
 
 class PageVC: UIPageViewController {
-
-    var locationsArray = ["New York", "Denver", "Ghana"]
+    
+    var locationsArray = [WeatherLocation]()
     var currentPage: Int = 0
     var pageControl: UIPageControl!
     var listButton: UIButton!
@@ -21,6 +21,11 @@ class PageVC: UIPageViewController {
         super.viewDidLoad()
         delegate = self
         dataSource = self
+        
+        var newLocation = WeatherLocation()
+        newLocation.name = ""
+        locationsArray.append(newLocation)
+        
         setViewControllers([createDetailVC(forPage: 0)], direction: .forward, animated: false, completion: nil)
     }
     
@@ -41,6 +46,7 @@ class PageVC: UIPageViewController {
         pageControl.currentPageIndicatorTintColor = UIColor.black
         pageControl.numberOfPages = locationsArray.count
         pageControl.currentPage = currentPage
+        pageControl.backgroundColor = UIColor.white
         pageControl.addTarget(self, action: #selector(pageControlPressed), for: .touchUpInside)
         view.addSubview(pageControl)
     }
@@ -60,6 +66,8 @@ class PageVC: UIPageViewController {
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        guard let currentViewController=self.viewControllers?[0] as? DetailVC else {return}
+        locationsArray = currentViewController.locationsArray
         if segue.identifier == "ToListVC" {
             let destination = segue.destination as! ListVC
             destination.locationsArray = locationsArray
