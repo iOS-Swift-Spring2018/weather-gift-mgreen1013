@@ -34,33 +34,16 @@ class ListVC: UIViewController {
         }
     }
     
-    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
-        if editingStyle == .delete {
-            locationsArray.remove(at: indexPath.row)
-            tableView.deleteRows(at: [indexPath], with: .fade)
+    func saveLocation() {
+        let encoder = JSONEncoder()
+        if let encoded = try? encoder.encode(locationsArray) {
+            UserDefaults.standard.set(encoded, forKey: "locationsArray")
+        } else {
+            print("Error")
         }
-    }
-    
-    func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
-        let itemToMove = locationsArray[sourceIndexPath.row]
-        locationsArray.remove(at: sourceIndexPath.row)
-        locationsArray.insert(itemToMove, at: destinationIndexPath.row)
         
     }
-    
-    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-        return (indexPath.row != 0 ? true : false)
-        
-    }
-    
-    func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
-        return (indexPath.row != 0 ? true : false)
-    }
-    
-    func tableView(_ tableView: UITableView, targetIndexPathForMoveFromRowAt sourceIndexPath: IndexPath, toProposedIndexPath proposedDestinationIndexPath: IndexPath) -> IndexPath {
-        return (proposedDestinationIndexPath.row == 0 ? sourceIndexPath : proposedDestinationIndexPath) 
-    }
-    
+
     @IBAction func editBarButtonPressed(_ sender: Any) {
         if tableView.isEditing == true {
             tableView.setEditing(false, animated: true)
@@ -97,14 +80,43 @@ func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> U
 }
     func updateTable(place: GMSPlace) {
         let newIndexPath = IndexPath.init(row: locationsArray.count, section: 0)
-        var newLocation = WeatherLocation()
-        newLocation.name = place.name
         let latitude = place.coordinate.latitude
         let longitude = place.coordinate.longitude
-        newLocation.coordinates = "\(latitude),\(longitude)"
-        locationsArray.append(newLocation)
+        let newWeatherLocation = WeatherLocation(name: place.name, coordinates: "\(latitude),\(longitude)")
+        locationsArray.append(newWeatherLocation)
         tableView.insertRows(at: [newIndexPath], with: .automatic)
+        saveLocation()
     }
+    
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
+            locationsArray.remove(at: indexPath.row)
+            tableView.deleteRows(at: [indexPath], with: .fade)
+            saveLocation()
+        }
+    }
+    
+    func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
+        let itemToMove = locationsArray[sourceIndexPath.row]
+        locationsArray.remove(at: sourceIndexPath.row)
+        locationsArray.insert(itemToMove, at: destinationIndexPath.row)
+        saveLocation()
+        
+    }
+    
+    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+        return (indexPath.row != 0 ? true : false)
+        
+    }
+    
+    func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
+        return (indexPath.row != 0 ? true : false)
+    }
+    
+    func tableView(_ tableView: UITableView, targetIndexPathForMoveFromRowAt sourceIndexPath: IndexPath, toProposedIndexPath proposedDestinationIndexPath: IndexPath) -> IndexPath {
+        return (proposedDestinationIndexPath.row == 0 ? sourceIndexPath : proposedDestinationIndexPath)
+    }
+    
     
 }
 
